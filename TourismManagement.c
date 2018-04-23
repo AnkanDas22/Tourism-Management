@@ -24,10 +24,10 @@ void PrintTicket(user*);
 void CancelTicket(user*);
 void ChangePassword(user*);
 void LogoutUser();
-void DeleteUser(user*);
 void CheckTicket(user*);
 void DisplayAll(user*);
 void WriteToFile(user*);
+void ExitProgram();
 
 char currentuser[100];
 
@@ -55,6 +55,7 @@ int main()
                     ShowBrochure();
                     break;
                 case 4:
+                    ExitProgram();
                     exit(0);
                     break;
                 default:
@@ -64,7 +65,7 @@ int main()
         else if(currentstate==loggedin)
         {
             printf("\n\t\t\t\tBook Ticket - 1\n\t\t\t\tCheck Ticket - 2\n\t\t\t\tPrint Ticket - 3\n\t\t\t\tCancel Ticket - 4\n\t\t\t\tChange Password - 5"
-                   "\n\t\t\t\tLogout User - 6\n\t\t\t\tDelete User - 7\n\t\t\t\tBrochure - 8\n\t\t\t\tExit - 9\n");
+                   "\n\t\t\t\tLogout User - 6\n\t\t\t\tBrochure - 7\n\t\t\t\tExit - 8\n");
             scanf("%d",&ch2);
             switch(ch2)
             {
@@ -87,11 +88,10 @@ int main()
                     LogoutUser(h);
                     break;
                 case 7:
-                    DeleteUser(h);
-                case 8:
                     ShowBrochure();
                     break;
-                case 9:
+                case 8:
+                    ExitProgram();
                     exit(0);
                     break;
                 default:
@@ -111,10 +111,10 @@ user* InitializeList(user *h)
     fp=fopen("users.txt","r");
 
     if(fp==NULL)
-        return t;
+        return NULL;
 
     if(fgetc(fp)==EOF)
-        return t;
+        return NULL;
 
     rewind(fp);
 	while(fscanf(fp,"%s %s %s %f %d",temp.username,temp.password,temp.place,&temp.price,&temp.numtick)!=EOF)
@@ -183,7 +183,7 @@ user* AddUser(user* h)
     nw=(user*)malloc(sizeof(user));
     fflush(stdin);
     printf("Enter username or email\n");
-    scanf("%s",&nw->username);
+    scanf("%s",nw->username);
     while(h!=NULL)
     {
         if(!strcmp(h->username,nw->username))
@@ -380,7 +380,7 @@ void CancelTicket(user *h)
         flag++;
     else
     {
-        printf("You haven't booked a place yet\n");
+        printf("You haven't booked a tour yet\n");
         return;
     }
     if(flag==0)
@@ -397,6 +397,7 @@ void ChangePassword(user *h)
 {
     user *t=h;
     char passcurr[100];
+    fflush(stdin);
     printf("Enter your current password to continue:\n");
     scanf(" %[^\n]s",passcurr);
     while(h!=NULL)
@@ -427,25 +428,10 @@ void LogoutUser()
     printf("You have been successfully logged out\n");
 }
 
-void DeleteUser(user *h)
+void ExitProgram()
 {
-    user *t=h,*prev=h,*next=h;
-    while(h!=NULL)
-    {
-        if(!strcmp(h->username,currentuser))
-            break;
-        prev=h;
-        h=h->next;
-        next=h->next;
-    }
-    if(h==NULL)
-        return;
-    int choice;
-    printf("Are you sure you want to delete the account for the email address: %s\n1 - YES\t2 - NO\n",h->username);
-    scanf("%d",&choice);
-    if(choice!=1)
-        return;
-    prev->next=next;
-    free(h);
-    WriteToFile(t);
+    printf("Exiting...\nThis project was made by Ankan Das from UEM, Kolkata as a second semester project\nPress \"Enter/Return\" to exit");
+    char exitprog;
+    fflush(stdin);
+    scanf("%c",&exitprog);
 }
