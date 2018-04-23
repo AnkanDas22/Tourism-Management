@@ -20,8 +20,11 @@ user* InitializeList(user*);
 user* AddUser(user*);
 void LoginUser(user*);
 void BookTicket(user*);
+void PrintTicket(user*);
 void CancelTicket(user*);
+void ChangePassword(user*);
 void LogoutUser();
+void DeleteUser(user*);
 void CheckTicket(user*);
 void DisplayAll(user*);
 void WriteToFile(user*);
@@ -30,7 +33,7 @@ char currentuser[100];
 
 int main()
 {
-    printf("\t\t\t====TOURISM MANAGEMENT SYSTEM====\n");
+    printf("\t\t\t==== || TOURISM MANAGEMENT SYSTEM || ====\n");
     user *h=NULL;
     int ch1,ch2;
     h=InitializeList(h);
@@ -52,10 +55,6 @@ int main()
                     ShowBrochure();
                     break;
                 case 4:
-                    printf("Exiting...\nThis project was made by Ankan Das from UEM, Kolkata as a second semester project\nPress \"Enter/Return\" to exit");
-                    char exitprog;
-                    fflush(stdin);
-                    scanf("%c",&exitprog);
                     exit(0);
                     break;
                 default:
@@ -64,7 +63,8 @@ int main()
         }
         else if(currentstate==loggedin)
         {
-            printf("\n\t\t\t\tBook Ticket - 1\n\t\t\t\tCheck Ticket - 2\n\t\t\t\tCancel Ticket - 3\n\t\t\t\tLogout User - 4\n\t\t\t\tBrochure - 5\n\t\t\t\tExit - 6\n");
+            printf("\n\t\t\t\tBook Ticket - 1\n\t\t\t\tCheck Ticket - 2\n\t\t\t\tPrint Ticket - 3\n\t\t\t\tCancel Ticket - 4\n\t\t\t\tChange Password - 5"
+                   "\n\t\t\t\tLogout User - 6\n\t\t\t\tDelete User - 7\n\t\t\t\tBrochure - 8\n\t\t\t\tExit - 9\n");
             scanf("%d",&ch2);
             switch(ch2)
             {
@@ -75,19 +75,23 @@ int main()
                     CheckTicket(h);
                     break;
                 case 3:
-                    CancelTicket(h);
+                    PrintTicket(h);
                     break;
                 case 4:
-                    LogoutUser(h);
+                    CancelTicket(h);
                     break;
                 case 5:
-                    ShowBrochure();
+                    ChangePassword(h);
                     break;
                 case 6:
-                    printf("Exiting...\nThis project was made by Ankan Das from UEM, Kolkata as a second semester project\nPress \"Enter/Return\" to exit");
-                    char exitprog;
-                    fflush(stdin);
-                    scanf("%c",&exitprog);
+                    LogoutUser(h);
+                    break;
+                case 7:
+                    DeleteUser(h);
+                case 8:
+                    ShowBrochure();
+                    break;
+                case 9:
                     exit(0);
                     break;
                 default:
@@ -107,10 +111,10 @@ user* InitializeList(user *h)
     fp=fopen("users.txt","r");
 
     if(fp==NULL)
-        return 0;
+        return t;
 
     if(fgetc(fp)==EOF)
-        return 0;
+        return t;
 
     rewind(fp);
 	while(fscanf(fp,"%s %s %s %f %d",temp.username,temp.password,temp.place,&temp.price,&temp.numtick)!=EOF)
@@ -306,6 +310,39 @@ void BookTicket(user *h)
     WriteToFile(t);
 }
 
+void PrintTicket(user *h)
+{
+    while(h!=NULL)
+    {
+        if(!strcmp(h->username,currentuser))
+            break;
+        h=h->next;
+    }
+    if(!strcmp(h->place,"\0") || h->price==0.0 || h->numtick==0)
+    {
+        printf("You do not have a ticket booked yet\n");
+        return;
+    }
+    float total=0.0;
+    total=(h->price)*(h->numtick);
+    FILE *fp;
+    char filename[50];
+    strcpy(filename,h->username);
+    strcat(filename,"_ticket.txt");
+    fp=fopen(filename,"w");
+    if(fp==NULL)
+    {
+        printf("Problem opening the file\n");
+        return;
+    }
+    if(fgetc(fp)==EOF)
+    {
+        fprintf(fp,"TOURISM TICKET\n===============\n\n");
+    }
+    fprintf(fp,"Email ID: %s\nTour Code: %s\nTicket Cost: Rs %f\nNumber of tickets: %d\nTotal Cost: Rs %f\n",h->username,h->place,h->price,h->numtick,total);
+    fclose(fp);
+}
+
 void CancelTicket(user *h)
 {
     user *t=h;
@@ -356,6 +393,28 @@ void CancelTicket(user *h)
     }
 }
 
+void ChangePassword(user *h)
+{
+    user *t=h;
+    char passcurr[100];
+    printf("Enter your current password to continue:\n");
+    scanf(" %[^\n]s",passcurr);
+    while(h!=NULL)
+    {
+        if(!strcmp(h->username,currentuser))
+            break;
+        h=h->next;
+    }
+    if(h==NULL)
+        return;
+    if(!strcmp(passcurr,h->password))
+    {
+        printf("Enter new password:\n");
+        scanf(" %[^\n]s",h->password);
+    }
+    WriteToFile(t);
+}
+
 void LogoutUser()
 {
     if(currentstate==menu || strcmp(currentuser,"\0")==0)
@@ -366,4 +425,27 @@ void LogoutUser()
     strcpy(currentuser,"\0");
     currentstate=menu;
     printf("You have been successfully logged out\n");
+}
+
+void DeleteUser(user *h)
+{
+    user *t=h,*prev=h,*next=h;
+    while(h!=NULL)
+    {
+        if(!strcmp(h->username,currentuser))
+            break;
+        prev=h;
+        h=h->next;
+        next=h->next;
+    }
+    if(h==NULL)
+        return;
+    int choice;
+    printf("Are you sure you want to delete the account for the email address: %s\n1 - YES\t2 - NO\n",h->username);
+    scanf("%d",&choice);
+    if(choice!=1)
+        return;
+    prev->next=next;
+    free(h);
+    WriteToFile(t);
 }
